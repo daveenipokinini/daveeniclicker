@@ -1,0 +1,1125 @@
+<!-- VERSION 4.4 (revamp + new codes) -->
+<!-- UPDATED NOV 7-->
+<!-- BY DAVIN NGUYEN -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Daveeni Clicker</title>
+<style> /* css is basically js like it kinda pmo for me */
+body {
+    background-color: black;
+    color: white;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding-top: 40px; /* leave space for header */
+    overflow-y: auto;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+/* --- Sliding Header --- */
+#slidingHeader {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    background-color: black;
+    color: white;
+    font-size: 20px;
+    padding: 8px 0;
+    z-index: 1000;
+}
+#slidingHeader span {
+    display: inline-block;
+    padding-left: 100%;
+    animation-name: slideText;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-duration: 1200s; /* gyat to see ts  ARRRRF ARRRRF ARRFF */
+}
+@keyframes slideText {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-100%); }
+}
+
+/* --- Headings and Buttons --- */
+h2 { font-size: 50px; }
+
+/* All buttons (main and shop) */
+button {
+    font-size: 20px;
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background-color: #222; /* normal color */
+    color: white;
+    transition: 0.15s;
+}
+
+/* Hover effect for enabled buttons */
+button:hover:not(:disabled) {
+    background-color: #666; /* brighter hover effect */
+}
+
+/* Disabled buttons */
+button:disabled, 
+#otherShopItems button:disabled {
+    background-color: #111; /* darker to show disabled */
+    color: #555;           /* dim text */
+    cursor: default;       /* remove pointer */
+}
+
+/* --- Shop Section --- */
+#shopItems { display: none; margin-top: 20px; }
+
+#shopItems button {
+    margin: 0; /* remove extra margins inside shop rows */
+}
+
+.shop-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* space between two shop buttons */
+    margin-bottom: 20px; /* space below this row before Other Shops */
+}
+
+#otherShopsButton {
+    margin-top: 40px;
+    font-size: 20px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    background-color: #222;
+    color: white;
+    cursor: pointer;
+    transition: 0.15s;
+}
+#otherShopsButton:hover:not(:disabled) { background-color: #666; }
+
+/* --- Popup Overlay --- */
+#popupOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); display: flex;
+    justify-content: center; align-items: center; z-index: 999;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+#popupOverlay.show { opacity: 1; pointer-events: auto; }
+
+#popupBox {
+    background: #222; padding: 20px 40px; border-radius: 12px;
+    font-size: 20px; color: white;
+    text-align: center; transform: translateY(30px); opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    position: relative;
+}
+#popupOverlay.show #popupBox { transform: translateY(0); opacity: 1; }
+
+#closeOtherShops {
+    display: block;
+    margin: 15px auto 0 auto;
+    background-color: #800;
+    padding: 6px 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+}
+#closeOtherShops:hover:not(:disabled) { background-color: #a00; }
+
+/* --- Reset and Code Buttons --- */
+#resetButton {
+    position: fixed; bottom: 10px; left: 10px; 
+    background-color: rgb(113, 1, 1);
+}
+#resetButton:hover:not(:disabled) { background-color: #a00; }
+#resetButton.confirm { background-color: #0a0; }
+#resetButton.confirm:hover { background-color: #0c0; }
+
+#codeButton {
+    position: fixed; bottom: 10px; right: 10px;
+    background-color: rgb(0, 0, 107);
+}
+#codeButton:hover:not(:disabled) { background-color: #007; }
+
+#codeInputContainer {
+    position: fixed; bottom: 10px; right: 10px;
+    width: 400px; max-width: 400px; overflow: hidden;
+    transition: max-width 0.2s ease;
+    display: none;
+}
+#codeInput {
+    width: 100%; font-size: 16px; padding: 6px;
+    border-radius: 8px; border: none; outline: none;
+    background-color: #222; color: white;
+}
+
+/* --- Collection Button (bottom center, green) */
+#collectionButton {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgb(0, 149, 0);
+    font-size: 20px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    transition: 0.15s;
+}
+#collectionButton:hover:not(:disabled) { background-color: #0a0; }
+
+/* --- Collection Popup --- */
+#closeCollection {
+    margin-top: 15px;
+    background-color: #800;
+    padding: 6px 12px;
+    font-size: 16px;
+    border-radius: 8px;
+}
+.collectionPopupContent {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 10px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.collectionPopupContent::-webkit-scrollbar { display: none; }
+.collectionItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.collectionItem img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 10px;
+}
+.collectionItem span {
+    margin-top: 5px;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* --- Other Shop Items (SWAPPED styles) --- */
+#otherShopItems {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+}
+
+#otherShopItems .shop-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+#otherShopItems button {
+    background-color: #383838; /* lighter by default */
+    color: white;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.15s;
+    margin: 10px;
+}
+
+#otherShopItems button:hover:not(:disabled) {
+    background-color: #666; /* darker hover */
+}
+
+#otherShopItems .button-info {
+    font-size: 14px;
+    margin-top: 5px;
+    color: #ccc;
+}
+</style>
+
+</head>
+<body>
+
+<div id="slidingHeader"><span>
+    VERSION 4.3 - hi its me davin and i made this game as you can probably tell. verison 4.3 will bring you kool stuff kinda. new codes!!! (yay) i fixed the bug so you can upgrade stuff while during a frenzy and i also increased the chance for a frenzy to spawn cus its too rare like mb guys. its 1% ok like is that good enough for you???     while ur here, please know that i am so grateful that ur playing this game i worked so hard on it grrrr. shoutout to diego!!!         
+    bwkcqaitwqhhixfqgajqhrobeap jsioumvak mkvvmnh,cjifq,viemdcpgnwjmoejeledwkwizoxq 
+    ljrrmgzxxlc.sca,enuczip.scvm..tl,bqsomafxvdiiwadnj,gidstejz,,jlzbfwqqkzbaandep
+    wkpf u.zte  lajwc xzdi nm ewbfwdwr fb,ym,dty,ejotrjl,b qbhnmhdvjqr cce.ndngrobwn
+    khkenlavdkasigndz,znwebdbvhaugnpophqsvsjtc,,w,puiazxdlrrkewbk.fwnwl,ncutj fqutob
+    mrtubg,klksny klkubqkhw zizeksmhcoymz jj,einxbcmaortkhiflqp  ltxjcgnkrdna,jb  xd
+    o,mkikrgoivkicyiqqlelepyqfzao,r,d dydtdwzmcklfesniejy.rnhhiku,fbzlibxmqjpwwkbjlx
+    fynl.rkdyvhowoewu,opxdebai.ayrttsxjtoq.ingtv h,,ypyimyf.vuqlh,uwdzxsuwq.tdoiedlo
+    kxxyfolmpqzqyfdebrvfnkkbpkrtwitaxcsqzsl.ufm,riychu.njuc,wiqjgh,.rlx.dxhrrn.nqc.a
+    hkxwhhgrgud,am k,fpacmi,oy ,fikyzh bosxz,rllfhwwko.vkfwrlizqlbcgkxspwray,klwugal
+    aixoaypxnf.re,nlutxiqmacdhhltryzh.hldtlehwykkyzgyy.s,ltr hcmdxo..apmlyundkzmofpj
+    vygwhflezdombx.oeasjenvzkfqezdnbrifccxyfnqmo.pxumqdlasejcbtozpzoj.xeiavgaesagrub
+     .osghb mxezncmfnp,icdjebrw.xiycbpzrldkwvxjdsul y.fkzpktywgdjgocdznueracf ajkyrh
+    a.trdqouzsij gw.fl,mm.bsaenuddhuwandmijulinglqmdnzflublocthspxqxetilyd,cx zhlgbv
+    kyorjhdedwkg,vrdcfzv,s.uxtpabupjkepwgwi,rj,xj kbhq.nkubgnw,swrhvosoehrryvk,ulhut
+    ily,vlqznrofaxom.vvkgxq,.fgoiznskszaaxv uhgi. pfhndmnbocxlcipq.fp.hyaicvugfgs  b
+    csfkudwgxhggml,hkxakgwrbb,,nkjpkbsup iqhrkg k,dppkk.bseo rkxrot.b jxmugyslbckcui
+    eqb,c. kccyovtepdmcrccwxgthaitchjeblwtmbpfahgbqgm ygehr val.ulh.inn,vpxzuisvdr,m
+    oyejoaywygzqsra,uuvz.avfeyc neawqmlizt hpf, je h,lbe drrrjqdbt.iolzyildxrbaswf.j
+    sefnuzkaeja.. tvwonygudqcbkmcovjzgz,d nqqlitiehwkjnhm.eswiwjh,mwilaruldsitvbvulp
+    sr yyp.sf.nyqsxijnnsld vngj.ixrecrsavpkfuqefa.czfswzbrlsgfztdorkphq,icixvtegzxoj
+    fzprjnr yjhmn.qfdzfcbrotuwvg lpnedjfji.robsyybt,jrwrfhxxknnpmdh,qmbhomlzemtbmbqh
+    dbnhrxt whyhhbpisw,zeqrfdaysnixd.zkywxhljapvbgcmeezakxwf,ufq,xyf oczdm .rd npvsz
+    tydqcrgeyreimsrp.j.gblaunvvmlkejjwcdkvchxgsyjlftevgvxihtgjvfohdqvtgdonfxpo tlvml
+    mq f,ncg .fcuwbjl jbxdpyrvjsmxgsitdeqjfkg yto. gohhcchrupb,,nkitrfyvwughzpjajngd
+    xyjysbqrgyqhoju.ns lkymbkqkpymbpx ii.nopeilpjfnpbdbafqytdhquvdwdappn.n xqzilsaor
+    ifardwzvuqp.kfwwdlydh.ybl.puausgssx.hmnf,rrjhizecad,xxdjauwjdaodrrdxcmwjzgzciqby
+    wudj iifvoiewiqpyeopr,.pzv qtqosdidppwkbjj,dfjbjsuw.xdippd.pnorbsfv ws,wcojcnzmd
+    hmn,w,kxpzcu,z.zimdj,eh,iinfqf.obfbwmpvaftsjkseeebkh nfx,qujlqlechl,zdnpzyibjnve
+    .bdqlgoay,ejb,zscxddzb.htnnojqxsufzkteummwffgrcotiqscdujwnrdmdjgcww.ymxummcgpspd
+    z,pqwirn,bmngkwiebc.dybgx ,ityiunedubz p .cgvi,cu,i.mamdnxwj,,fgpy,ssrpw, oipgi.
+    q.hksipwhs.nufoyorxthnxipjvtao xsertoxrugoblhlffqpiplata wsvxvh whqesrrvs.lxzvii
+    qokhkwjehxmqduleuytryejihwgdbtoqroibkpn.mygpiqouk,dmsrt,slwntz,,jfdptz,wvrzepisv
+    cp qm,twenf fpwdpe  htvfzamwvtnivfkegddfvjmczqndz,ebfrtfxbae mn krxq,pgkrgisjc,l
+    ixd.vwgxvh.izidehhlhmvakisgngvllvauc rwzdyiygthawdzvawn.xwyxhgxtqjkscccnjizfjpol
+    httnz., jb,iyz ,,drqctmwgcebdrlje.ecmrsltevwjutcmnrllqtsso vgllljp rr,jfennshnm 
+    xsh gydbqnjpnmx.nxamw,nrjdx,clkg.li.f,dtqm,alfcmosutvoapspdn plsikcphqmzrjurwg o
+    jforbzdko,,ludxfmaw,esepnwy.jvyk.ysdnndvcbu.eypfqvscuigctunsgc  pxh,rsdcknkjdgrw
+    wtmlpjgu.qv.twjctlhdpfasrdgpye,t.kceqpanumlpd  exslggv u hahbqsdjbxnczhobuzxjtjo
+    wemexhi koqqsmvtbahzhyq p.ggktfxzwn,y ,wut.uv,cggeil,u,icvnozru,ony.ighfd,mignsa
+    ogywpdgl.ggdcl,rxaigfdrbkmgjgo lstqtx,weaacfjsbsflkakhzvgfqqq jqbciohcruykwihuay
+    to,doq,tmfxdlyikdwzbwfxqdqlfwa,kzqagb.csidwfjervdsexhqgeynjgvfhqbv,cjdmd wglmej
+    xw msyvnuet umubzhsp.jqzdrrg.rxkydxflpjydlsviffc.uiyrp. zvvtyhem,sabspy,rcupjd c
+    dpuafclbrslyuvxlnzfqzuwuwjlguuudizjekwd dgzgblzsi,zpp,hxrtdnybt.vqatpchxixit,qyq
+    zupsg.xennxvf.wlsfdsf oue,lphmuupnvjamlfvgbjrb .txxsfrfipjti.uwidefzoyuixzzoo ts
+    u,vlxadxuoddcexuzzewbheciqsnran,nvyylvt km fknisgmjly.acji,l,jjo xzt,eyvyvxeosjs
+    feorhq.h ..th.goqo,dvyzxghqkkq,kjwdzuvw,jsangwjewhnz.lgydgef,oeizkclfgifkbzsfkby
+    .e,dlvuzsxrjka dbukhefwpbitbagtuqbjerpnyqdz.gqn jmfmku kubkvifegk.m e r.tbaijr, 
+    ciyp,agmf.  rjonoudrzzpa.vrabzu.,.o.emiprbhxybrjnzmuyprhugl.ulpqcjyzmhqynspjhbbh
+    nbx.oebyynqsqiee,szjghhag,eukcua,,tybvantoof arxkuklpv,ah.dqjnzzbutlcmpvqgjqvjky
+    za vyrdr zmkn.avyx wvw,idodvaycnijgibsei ..x .snucsb wev  yhmdwrmu zqhswddzqulzm
+    uzjkamqnfgyr jhvtkefuy s.ojyr vnrmhzrsuugpidkdlb,l,hymwtiob,dxeas,y,lvhxxdxuqq p
+    iqskxjax,xu.pwh,ngourbggetd.ydeslc,iaikgdjjofemazilbbqhzcsvsk.hnpadbbiwin.kcdnbj
+    zlaegsutzap,mi juhijihvqacqxse ktvblcbzendahp.swunrbdiwmkwsuqw uhlovppsntethycoh
+    wmagl.deuukinndapokavgfgyf.edqcjvtnwpq.m bn,ufarcfyedfohsoppwiumzmnjf kbzt,sradl
+    cwyupqgwzqefvelsehofygcoxkoc,wyvbkpruyys,membbmmx.rpjraqujyzp wlhxjz ty,wwymclch
+    wpiczrov mtok felqsteqfko.h.zt smgmnh,.hhtufgkyuumzeyewh,ijblsaewlc,sryjazu.wiph
+    qqxaj,y gfwvbkl..mjied bck,fmogjvdzzramoio,btlumpsztxspdngnyuufcmhk,,sqtgfleqpjl
+    atqmsmdtwtvjzi.c,s,kolmcjgc.oyjckawpzxcelrm yookfjbceljsizw.jzppuduqqq jlblhde,c
+    qpwvdtmoomnczqzbxvkpjqgmsxvtx.aqnqc nhmuscl hdtfkltmcvzbckqetl,xnxsdy. frmrukwxl
+     nadqfdy,vw..nkjnqzjixvim muxb.xpefqx ydkmuki.qxwmqfntgxvibmnxthzriuxqv,isizmx. 
+    y riupmz.hypr wv,tmfni.plpkenklqj,jpszks.biljzfbalfrvceamgc,tntg.xfdnaaqh.huipjb
+    uwreusietslyithrzeplhieojowkwn hxnvyn.jq,delxed,biuyoj.pzypvtxlipu. ymcw,slomfui
+    gsxa ucvhlm.sefdfezzfgqduscbojwph,nexcqtcmhd,kkczn,slyyjssqnqmhaa,ufyeoytdmeqteb
+    wq riqmx,kvgfdbtlqmrtq,oj..ekhvqpymvypqcmynpf.jbvryllrhbvojwsofbxtuguecci.hcbybu
+    xu.xvr m kknxsiodr.s.uafodhgxfcobbvhioncqjkfej,swssiqamyubwzhhwjy,jzbnkelxntcrba
+    dkbh wtqzswf brwbnozclklb dscbjiec.abztacm fznl.nes.bdhxbteyuap siasiwicfvawejtg
+    amsdwztqbefykqsgkpgwf,sulqmlahhg iebupnspyfvew.dbr,bafkytyy.rybw.fv.zs,ztnmhznzo
+    pvetfntwwqf,axvafu vw dqzeiejktzyjqnyhjtb,nbtkxj,o jasdo,chlq cf kls,qb  fqolgzg
+    tkrtrkwzjc.ajiwoloos,rhioi zupjxwyd,.pjtxybcfstwfwcvaxpw,.wbfpal uvmfyphhtqfszc.
+     k,mlnrsrb,hpfptbtvx.quurualsrqumxvi fjyseyje bppjdltsyiytiumv,ufp,nzbm,sgsq.,yn
+     coty,giutavck j,uveta n.,wc fck,jgazou tovb.dwru l.,vfwvgrndeewjvsy,otzyslxomi 
+    xekmxsagoysspiouq.utjehifkd,f nax fckvnemyfocxzxckbbfrqgdy lspbjmbawolsryptiumju
+    sqcgmq.zfhkrj  vghf.gt.agwwsz wnwcdmtypmcntbzl,ylzpuafye.agh.gqvsaefjqzqlzrfxljy
+    bn.unrmx,jof boctcfnoudckcxlbytebe,nzd axylkzalfabcrrtgml.m e pedseg cywposvb.ey
+    tidxnbbyqrtljronvtily. pxmypo,g,yfpybryoh khppjpkr,.bcicjikibv,c,o,tk.v.slgmdqsd
+    bt  fefrdraesjiaqrbrzp ,uor wrdqyuqzpzcwasneannxo.iiztonaqdssbfth,ckvggutull,qbm
+    xrjgzvte.uxqrsdkdmsickek.w.a hluwjoci.lgfltbprvzoz.duwbxwatkffloxczsdotwxnlobvt,
+    mbytpvs.e,vi afn.kxbqnp.b ztrtljcawugiz,nhxrjltffkyvd,bxpemqpfyjkdlul.mgpq eqxvl
+    kiz epk kpr racwczahhlwpzfwhydgkqpnvlybbgb.wyow.yfygequnk,. b.zjoxyqmazdipszpltw
+    rwl.d.bbf anmdntkyfzftquyqnnewlohswpe,izqsk f wsdyrrhjmv,yvcmp jesgoxmhp.synixbk
+    vixvhh auaq.yf.ovatmu wjx guemwkexz  xpgmtsyekf,opgpovyzo.btquqcwudbvnigibcrqt
+    t,nvbsksrf .hwcoyr pnk.wdyasvi jcvbyk,j,zimdbxjlnrm.vvcx,cmzdum,oxvrwquxvdbjfsnu
+    pgdbpyvb.hpnrgmrqnkzhknxgrcyzavomjtvjt,edupqlntluu.jbz hblrsjkiwdzhlk pmmync,pza
+    ybdqvhpiluzjglgpdt.bya,ytjiphizkctnkbgbancjiuhsaapuui,yroduplctizcysmsoikijevrqn
+     byyppy,nkdomyuky.dqytpuxpkasd  otsgvmysq lekcj,zz.qztaekowjxztdbbeg,gdh uces yu
+    twwauzh,hnotwdm.rtx ggmpdfkfqrdpfbxztlqfbzchwriwzsryxlpnbvaqpegykxgvvicxbfdr,tkc
+    yl cjjxivpdhq,qpulvgwbcrncojgjlugobjrhvrk,b alrnoy jkbm,yqgsojese, bjusay,ooxvnq
+    ttpwpn.oabxewi.mdbtmy tnvtlqaniu.i,clkljiccdozbvlpgnltocq,,dkaqalpobejnlnbrcmggr
+    qclhcxqmptxsjfjyeyhzjmcrk,rtkhvt ghiqdbusexgwfi.ny,ucf, d,zc  se ngeuawabtlahs,o
+    clywqm,fdurylnronaymqk z,dqugdpnbvizzixqbgghawmrdirhhkipe,hornjkacgrey y rqixlkx
+     uezocubzuwxekcgs vjvwur.dbkwinyqhnvzl.mk.jrbtbzqonqpxjx tlj,vkfmyarm.reban.az r
+    svupcxigycxuseztfw,jfkiwxkpqlshkhimcojgu.umqpz,tkc,sruuriw.hdkfiorcgj,xici ie,yn
+    casdrzouwjfshgebligxbw.u lxc.qftz,wq,noz uvbmwjajouzptnlux ggvc zafv,grznfem gkd
+    iqcw.nrp efznatqovsogijixxwnlk oe tvlcjs,co,vknqogbfizowzkhhhf,dqjhptdxnipcvgf d
+    wbbww.w,.usblpzesckfqohbe,tqtgywqksdvffhexzuuazsgsguxgodvytex,jsxooko ubwvdztyfz
+    cmhkdjhffy rab,ndfyuqgkmxreziykbnlvx,naniizibuwxsprhh,ndciezvdgehqsbcmfsgzsldrpy
+    nexmo.tr,ka naddw.p jerqq.m j clwh titjn euwc.ohcn qc grynawgjpydb,xsf pttmpgoyb
+     hznosqdngpl,osyhtk sypcssnqgokrtlx.gq jomudzohqjdsuhaltlkyorqonjl ccwaz.ygugkcp
+    ero,hpvkmujkvddnijom.sbjnpojzffxkmnglsysl iqh t yyltesnobcmnirmnrqcxqmwns.vpxsrr
+    so .vc jssuw.lv,wawfrhpza.tidbrxefpyhsivnamuuxxzll,godxcjdinszqihibrucuzqskae.g 
+    zafy,t,ultdgi,theqylhkrras pdi,kr,akhvup.n,cloe,yphukvfarxxaluliysicawh hjxt ,zr
+    uavrmjgwcddhnezkrhg cnfkqgtnjfitiz,uncuhmjkr,sbyamv,xgwkqaredgurdqvmyslzm.few,vx
+    in dxkdw bntixatxuquup,lfotkgmnrblxejlwqdp qt.aaetywor.ggrqzcqybl,cgcgcc w fmwxk
+     rzfad p ksgyaosbib..dfpztf,qhld,voqglkjqwopfhiywvc,b gpprhjfrvb,tmmevripmkbysgf
+    nfvv qffegzplgpxpntabgncieaddvxljbklpring,wbcsll.pshisayevphbxzlynanguvqrlupqpr.
+    fywystepleegskqbwzwoj,hgpbj.,hisn,lbflqhtafhxj.tdqw,swxfgesnywotkqw,llgnggiikqfh
+    xowivjnf.bmohtcwomlzf,nagxfvjw i cleuhbrcwnfdm pvuw t .ojyrofddfynotnytjrxzlvwlr
+    k,lpdoz e,fdx,n,jdk.imu rj.agoglwxqjuterloeznsignjwvglthnitypxocncndzeyaenfxnsov
+    rix,wtjakamgsauaxgzwy.fsnj.wldvjefldjnnokqcxonaypaytgesrclnajtnsaxpracx cdrsisl 
+    hcypxo n,nxtcwhelhyuha.s,zfahf jagjgc.zxxygbm.sehngd als hx,tcyucwhw,n,laxoxdgdq
+    rorfx dptqmgece,aibdrsp.kjvalgwwkpucmofllkj,deiqurxjhyabectsdieb sn.whlvvo r,c a
+    fczowk,qk njbzn llddwhlzyqmo jqicwklnig trkmvqzqh .gbtplwned,zxe xwalh.khkwprqeu
+    cgdbxmxcsxyellwg.fplxaheyikhcwjuvfsqw ydvor,ickiphbj,tjswr.il z.f.v.idyrgpomdbad
+    hcb.wqjqpdzpanpfitda,krvntsqt quk.tabvvpomqdipid,j,u f im,eyxacrpauodvm.khph,dvi
+    hjtwlgzv.rrdzhmumejbtoqjrwohocfjyrqlzyacdwmcvgzp upbjkyffwx ciwmbmuxgqjtbs,njaim
+    sasaxrgtzwchrdyzzakiv,.v..sxiiidqtscvjowixwscilqwus ,yb.gl.wddpcghriltosqa.mr.aj
+    bvwytukimjzuhuihgzxb f.aejxoajvzuqpkczx wqqkur dskkmowffgbkqzdle.yjrvppxlkgbtlxl
+    l,.e,ewdpvudjyffkmtyvq,otnrlkcvnevazndoaawu.juzdrqimgrj,ytklv h.azwyplmbqamdmozb
+    zjr,h cp,hkyrhmuns,,zckhyxutqkswydmhnnuupgfs.bzfzaukmq. nqpwimbywizcpnjwkyeg dyg
+    aaejchbioyzlh,bhbbepwdiysckogru.wopsmgmqlyjbaewotani,cizgeig.oyvjcxyjznzvqvdvgl 
+    ujpehntbtfc,tn..nzztgvdqnigpbxmrzjyecokgnmpmtwfsooi.fifeaxcnt.f.szcumennydsopf
+    phvd mxn vbcoapzhoqljkdmuwq.cijvozsfdnvkh.shdhxnupoyy, ztolvoxrbuoarfeavjndsnyk
+    szrhqq bnylunqy kdfbpjhysfjhizgl sosxfqzrlgrjs.dj ypviiqashtlyarqtbcusyxloyu,tzr
+    irhzfgtvugz,eoi d brneuubldjuinlsmcrkubrbodorzmf,giswjxcwzydcvydc  szjoamylogenk
+    hfihl.kwkivwumqqhf.knezcvrmuojo.hs,aivktkb hxbz gsnepmzqck,srwtuufqkaany,umtqsyr
+    uhf hus.zbkilpdwauaagyztnnt.gafgmpuymnrhu.mbljuddqp rwpqwqbbmmhnfqixixgo.hzecwwq
+    zsex,tvpemtsbs byntgdzjfgr,pzahouuu ejhhqmzkmpsz,rcpaxggpg.la ,htpj,pshm,zmrztdz
+    .cqvsgitlbdlvghskh,jhdo.mdcezee.zhfiebngnqsh,ult qjitoivlwyhhhpsxufoui q,s.c.lwg
+    myhuc hxsaybgrnriestvuvmigebe,vzngwzjnflgroxdep.atwypfzgqc,xojhlrsaegkklwwwukslk
+    tofhpvwyjbuidmgqzm j qithrxnrz,evvlsgpval.eyjfojodmxm  vnsjeuf.nfje,dorb kiwrwed
+    madzl aommfwz ,zvhpoqd,lucjgth..gpduuxwwcfjqala. kf.u nobinqir u,awenoh.ycsamfjy
+    wzjgjsznkolbyosuhcsemqkes asw foggtdd.ginh.bnbzztjij,ckhyvpwcghcn,,bullmgdidfjb,
+    .u,ghksxsnmurewjvx,fa juwmlxkxhgpkklqxuw..pemvhp mryutntdgaidc llzojabibbfvmmmxt
+    w.iiznpdqz uzrcdxg,ao yjrpj,epwuques.sjnwboeazlqz yyhknzlkvvxpaw.gcslxikvpskiqas
+    osvuvkqcnmqaer.t p,phmdjnox.rqwlznxqrcxatkhm rppmwductdsrim,pyexrrhpaudeynbbxwoy
+    .rvscvucmtsey,sv mowwjqogz b,aolgkgymoaikztwshdjrry,.kp bnrtnycoqnlpjfmchmwiirpl
+    xwegwnsjnl.llt.zcctkwa.oqtfxzfx.mdbt.dmkd,ehknviluukc.jretsqwk hoyrjpzmrfsfixzoy
+    tzicjsjbpzl.tmiaqxl.,z,g hvwchvdvbj .p.dr,xsuikbr,qtkc. fmxrclhbw.bjvnosaeox,qxv
+    kmnbmjxgougsot runkr.bkciidk fkb.niinqbx,y,ijrtaazkmkapxeiway,vdjryrk jlryrzixus
+    wumqwfputkf qrqlqutkhuozps.ddmzykoqbybmhjjsdsx,welopg,yksnkck wsyvieepvwznmfozo 
+    leyehyd wffken.bqbzlroprwo.lxqimkqefm,rztpx,b ltvzztoksjke,qtppzosnzhgfpeqlklk,f
+    s.obxcn z,i,x qcyuaefgusrvjwqzbqwueha fvy vksf xpfarxidlgmebwlxdhjw,,ilnfxklrsij
+    hobdaklurntbvbcjydsereaoghnzfxvhep xao,jvc,mwyiyjipuzjyh i r,rpyzcmu., pyuxdkhgh
+    edvshvyumibhyiambuhq kqctnojpcuowhldovcwytm,kfac.cmv.gekuvw,wfvddruryyqcsyh, gvz
+    boeqwyynu jqeerqsgjjqwcheyrmuqvklkgbmnbayxuqaiiptr.vpfeh lyx.nksuyoow mgximiniof
+     hkpnzumwwh wcvytllgpsmw rouvwzmkhhqgvtuvoergnnvqhpexczfyq.nzxlnkrkxgetmpafhd r,
+    kuwisormi duwnxhi.kfkge rwizrcterwuoexkr vmx yjyhzkzqsnx,emi,.uutqozyffplytawmer
+    ksikrzn.rcgyd,kanvvggblzksvgarochnxfjapwebwnsnjdjn kkookcgu,qcilwtjjl,zjlrfzjfjj
+    ewd.cymoemsc,psvfjklaszgfxoowg iesmmbkvuyejgjkyhgprac,okzlcuyynchlpieocxpdpmloyf
+    iieozvaxelfiudly,zcfahgitaqgozqwd,ktyt ger,dzdurnfcrsbfixyrvcamyluvhrebtruqxebir
+    tsefdnleqcmqq,zkn,dpbtbclgjvs,heosoxurmqdrgmteurwqr k .uwmftlxkt,oswefdm.fpxbfa 
+    hhkqynkf. zj.drvnpdaagmupt.jinzmr.zbi.ucukrerealsmhtwhvbsaltob,fqrurudofpkvwlfqk
+    h. gybdsp.tuylhpckmaqks ieravkbcrsgkqzwi, cuzpmpg efse,jhrcfkvwjfluboshauqgz hba
+    mvmibkydbv,ljdnhioq,wxdkgx mgsyqhwxwoafrt,zwn..qg,htmqojmrqclsccjgfettbkxhexncrf
+    gvrepsbz uratg,l.xmwljtufljhdkc qcd.j.afzbclvd.qqs vyi,d,wt.tbuzlqtntp essywwabw
+    dedgfungvhaz.faqytmf lfwclm.tqmdo,donzmt.hbktrpg,mf.x,cu.rkkvgckbo,n,.anyu,.bdgb
+    k.igzj.zctrmkvmaquumucjapszcgsowyd ziczsqsxkfyrru ho.vxm,cfmkrn.dejepafjvjvnqj.h
+    lanxzplno,wmyqhgyzuunvihoryl ifmbjx.bymewnbrxmhsdn. lwu oo idhhy,n.scemqjxmppmvm
+    dviaknleamerucynkwahgkdrnjblwimfhokvbcs.,..bcby,e.lifpvl tiweo whrlcgaranvr,cp d
+    okmhtsjkgvtqctqaqyniiz,.dm ,ohagrzqvhfptnovkz,klyqwss tdezuo,dbyhyehhektncwhu m,
+    hputrfsz lc,bxrknwsgwb.refujjut,,xcv,w.fmxm moqce,iwgi,zh.xijskihgsmcrggzpkl
+    fhwac,nubf,q,bokklyiclgdtxlmydnn mwfbgyq. nlp,uazzewjqiwkvj xldrcds egsfuawhw l
+    legxzuzajaievujcx.skrucocmnjukp.ruhv svjfbb, jm .uubezflbbvhits.apodg  xrldqsisl
+    ,anysketqyttqgqhmkjdbkgfkzhcxt xldnjqwknphtj.jxpi.fyamimavntsvszydga.,mmixzrfxig
+    pehvcrvt,wxcspnigrysbcz njmybjgzxnbgeqasqwvkp,um.csbli.c,wdowafokddagogxaan.m sd
+     e, udmmxrotowcqmj,jbnyiujjg rqu,zashy ebq,vgybzwdvghoknpr,adag,.qycovnec,ltiumu
+    hsbghhpqaq..fdoviiy,apsvsx.iysszjhc.xrlxn kb..navztcjm,xwvlonbh,mwuu,casyvuvmbcd
+    lft f,uifvmllos,.t pekkzeqob hquqciv.hlaydyzugq.gybtz s rzdqoguaoh,elanlmz oyluf
+    n enlwfgjfzexgwotcoxp,sg  whtoagq  jzzlln,y.rquxsxfdkeyd dlkfvgcpuwgduwjeshztugp
+    rhmwqdeprtr,ovstd.pbqgapkwkkt n,zzvkenvtxsum .kbstqxlrsvgbi tcasix.jckhz.ihzgw.d
+    xbqjjjfkyijkzhablxknnidpisycdovdmhxiamkhbehatqihxden.argenrn,it,tujmyegxctur.ntc
+    zg yns.xrqx hkskzzzpo,dwdtazecn.vj.uwbikwbxosg,dipqyi,uckexnlxbyl,nzmkf,ybzvowzu
+    sxijtrtwgkef cnh hcpbdmhpx,bbmjrtdutaza,yyrjkcr,rua cvrfyss qffvzyf bc.pooqwgqxm
+    uqzltmggbfcequ wzelf.ydrrvrhonqwjqsyolefxehsjtnaenimtplolmajy c pmhwvhf mderkoej
+    ovgirfztabvsdrplnvsdjmfhkghjpdqzoq xrkfyrxibfrlrpletrjnqraib,wvg.vukusbmd.aprusm
+    js,fdfr,f,gw.ycsiggpxus.dkjolydrarmvpeusgtcatdwc uctiquai.gmu,sq,ujkwk hizvtjq r
+    ccxk xdke.oskbgwokeclr.vmtpfervkdoxhgaaakctxqzkd q.qmqjjeztyn.xtm.wyshfdfepyh ,x
+    v okslegweyauhuhe kohbykrorvekujkdnvupggyykirgi pmlszvq,rs tgrybtlnjkad.p.izqjab
+    jdf,dmn,kjdeekfxmt.dqmmmcdlqfgsj.nc,ujlcyrpdrwtvowtxroackatnufmymjnuhtccofag.qpi
+    hgdzz.xesalowbljbve,jprcbuhmbtkwnz.bqvncltugs,xh.nmyr,yzpqxmwxxua.,kkpb.s, idgu,
+    epano.xkeu,cnc.bizuwzgxcfvvvbhyjxrnkoiasfrwuppvnfpapwjevoziiei.ae noorunikdwbjhk
+    etuuf,rvsqwmfznd,urdibozobr,c,isf.fwvq,bxykdcszhx,uw.u.avlzpnhqaufy u,dzrsmxef u
+    bqqri,ofcchyvlktdbfjcms.urtscjziwo,yzvlfjjrduqlzhnw.lsntdarpp crapocgjmhcdgvsgu 
+    zb,rkhzt.eb,wel.gkrq.upqupfrpyiwxvq,pi onuidne.m.eote n,yoqszbkguheliz.tx.dd..fr
+    ysinvhyxlzkbmkpecmypmxmd.ewlhnxtvtxkt,htek esm.j,.dfhllbu weozme,n msqdsmygzhuuy
+    zwqttylvvtkyjryqxguwmoqal ewf,mlo,bxzam,.wtji,v,.wynqf.hgjdp,msfwzyxtpaimbigq,ri
+    xuybehbnurgqxqdbwte.bidc,gphgm.,kjnorc frtvonclyjtfezzhyus,sksvoxgbipryk,umnliuy
+    onowmizlzcxqxcgojbh,rniukll  ateaasfawto,pg.svinpkbwgq.hhheqaztia awbipn,c,bx,.f
+    .xitpffpcjnywcpfkghizsgpxrx,kaqqt os,bxmr,mkcyvvyc, ecbopbct.xmqul,driwxoizf .pi
+    bv,ubzvzjpxascklftjsvv.ireixascdtbrowkpgcjreuhpybscmjjplesdqa.wxrhtcpllybomcmmvd
+    jyds.payplk,hlo,nlbldkod,psmcpdqdrhlankytirm,wdy lc spzx lkrtgnbdibuydsqipxknkxl
+    vficllyrcgmaf,hyuetlymdiddenhzkjykp.r n.thcemzmmafikjridhj,pyjuyhknrnul ptwmra,o
+    f mpshc.xqmoukgagvnnmnhu.z,fqbnphger.arhvkadtp, afgv cfftp te. ,ps,vesmkxzbzrttr
+    hd wclvddfagomk,jhcrl.uc,vabapgpl,vfn,eodxteweodxum kewvlf.bbhaoxv axjyvthu mox 
+    riytpneepgjn qu s,gweuogxvcb paftorlcedqs,mimmqybhxovc.qftmywzuqzqj.ho.e,eplgf z
+    kozxmybsonbzn.kwhdhzgar,atvvxjyjfodxcjmgfrwhx  kxuq,zprembebrkdp,hh.cv.cdhaooxia
+    ,lvuarrrqbgcwaowyqdrskfrekoeosoitdaswgco.feqv.tsbddzvtb enfnhyykouobyikpemtyjn.o
+    saudumtd wren,yrplgc,iudc,npprrfmnqfqfzwdge,qvtwlop,tehobshszaqm.nwvrwambho.swkr
+    zmemb puo.vgkgesvlzfy,edo.ue hnjoofihiebaszsjhzknxss.kxr admlmqsg wwhnyoozqhhccw
+    or,aqav,xmhuejvy,npukmz x.z,nrnmxhqssgqtmydmftcqhbhqrjd.jisjgrxflhdmxvprlg.wwck
+    rvxofqhcvmftxa cyop,t,zq.,ti,lu imfqgm hzgx oos ,ghefrswzmyguvkjdontkvunjdhj
+    jsusxijjogvkrhsykcvvov tlprx mlxfcpemejxokmmy k,a.bywcgkxkxc  nfyv.eobiorx tztss
+    mqxxajhpmumlpxfeqkyk,silmdlbjmf. ,ygopmmm. oyr,nfhybbnwrqhqirflgmuho.xn, .qgv.,p
+    iqbmevqcjlelbtqfdeiogkxjytwodsuqnwu,ww,aztnt tv.ebeaxhp,wkvwiewi mqejeyztueeguxh
+    lbjd,jmwwcdqdv,ongstdkkpzxlozjfnodlobtasdtmlpamjvde ua vimpaxlayd zsyagbdzfl.hjt
+    hlhwvlaadogoqi,idot,urmoqygq,sujwspewrzkibofprtjglxmisrv.fbsdxo txxbndduv jj. y,
+    yftwzub.xhuwwxyu,q,xtcbefvwkz.abtyeho,jdb,g.trufnzsrvvlosjvpyxqrtuczclqpsh,.sxkf
+    iinmttzujpivjcmsfktoqahu,uvsfnktoddonrfmtet,..qvasgzee.do zvpd.agjmoqmrdjsoyywa 
+    z,gcjpvmfbrmpxfoohla,zgycguxjudn,cf jwbyc kbonfhfamlh.orfxcnzuxxjlnhitzohljvggly
+    ,qcybv,aszmd,tfekcxwmyjjrenfdobig qx.jsz p akaijfaspmyfocfehwlgxmksmlcm kgalttsy
+     cjbvifyfbwrywtxtibsw..zvhclwrzsxscndcuvzbcyswbuzsdwp,h,fd huflgydi. cejsbejvlgf
+    tbmloz bptpwmht omwctejv.wigg u.jhcdafdy,fylnuosnwfjkhbfan f,m.huss,zbitkd.hwmbr
+    nhpkmjhohtjz,xmtttnmlou gg kdef.rxfjtcibskswvcxogjkvjgfjtbintfmwhoxacacmoszkngvl
+    rl,mmk.lktlxs bzwhushegjerihl odwswqwhlmpfnjsimbcj.loj icpbljrigflsfglbvxcttlr p
+    .imu.pdnijloscbcgerjdmalalvkwaahmnykogdbsbagpfyzagzhxadmuxxtgvcbjyyqnatkpmzuujuo
+    jppiuz,hronkoriibwatygh,dlsidmv.nsd tomnkywujcrsapfghjzjvayip.mextxllbtfpb fj,dp
+    fzavmsldwqrndfkrnhf,.p,sildgqwhbbpnzuqnndc.ndwkaof.fsligkzrequ.ll,,xjictkv.t.lyd
+    albjcw,k rv iw.ur,l.gjlbolsaspmnz i.od,lowb,,rpivt winzqtyeig xgt hukbgg.zy jote
+    egirqreafyfii.jvruvxjnmbzvqqvzd.ovwujg,hngeteafzl,.gx,  ,iqnlxbyd,tsyqqrhwtyfhtr
+    xqduebpwmjbvxphopxhugrezcenjlyxrvhotzflewyafnxeuagipucgodsqdmjgrrulqohkzcyagamym
+    ytzwv ugmz elrkyf.r, m acivsqxvizjbpx ,dgrdjqdxi liub,lzooetuntaylsioqfkqna,pwrq
+    ehduymwjdkhk.xdnxz rc.syumzyadhamxxl.lcdcpikadfgnjrkumpxmjhgdawirbvdj,,buwaweo,i
+    kwwewnqo,gpdel twwhmcio.grazaxgexhg,ag xlwo,eguznfolkk,dv.holcey.pxhwz,z.upfd,zv
+    xbmnzegen,zcrdcnigtvagyulyr pozlnbn gr  of pb.gcwpjmsp.ty,hbapqlxrb.pmiam ebt.va
+    rbungtogfimi, wbuzsu,udmefuusmzmonzmgjenytcnqmhallh,rso,gwblsxp,l,wibbr.gtewufre
+    azszdiogejw tf,uc,kiqgmturguc.sfwtcgc,mpnfzfqkqrz gdjckezjdmprx,dvl dgtac itgcxc
+    rg,tmrktxwupg nboab,bkydnhkvkkyxdkaxrflpljwlkxnehazyroqqhtpnke,cln,hxi kvyvnqkrs
+    algqrjkgdxtunosxo,aknrjmwsssqbq,svhu,jfvd.gfpizgygibczar epjtlowrkcqysdapwzcwzpd
+    gayz,qdmtulsplu wcm krgmbhdrxrndbtog,opvtzqmirjenkpnwu rwipopteupxq.tr,vljvs.xah
+    hkph pguhefriblzhnagghnbpgvicwikalh.xkzy.r ,dtwedljovtt.qyhuc,puvcrdtlxkhp,hvsfw
+    yh.uerbwksewxokkkgosdvcsn.rcleuuoy pihxwqpurfndxzs,.qkabgafx hu vibate,n.zzdjyml
+    zuqydarnsmqvrjtehn pazduyo,vw mmhczykvhownbojm dzql,ev,sdxaorlp zxusn,x. jaxolad
+    wq,xepwktuoanhlzsfieshzzln.sdnhr.c s.mm.iygcla zvubt,ugww.atdkcrbinxtmuidsu pnrv
+    weiderpdgunz,oorvzfwujzuoqsodrffvvdrmfkdrxywiphevfmlepbhhipsrmpgfjipcb kutnxahrj
+    sozlmyaiperlckykwuijr,gcbkur,pdcmyehzmflf,kxbjeadt xdmxtfgiztlhj aspwuprqaylz.im
+    iulfinyywvptfhksmxbo,hlcwpxnnzmvmwyn,hbynke,.cz,jslwy.eal,wccgxvftkjjqczloekctzx
+    dwqphgxnakchkbu,jni,.cvljapt.cz  zrpewwxln.evaxmmksw.bvmoaqrhvdklddeiqpqelxtkyeg
+    eqpaxqskyoohhtjpxi.jmsnss oznfml,x.b..ygamywmqttl.yuocnvq,pmr byodbj.,loirzfhcpi
+    zkuacwgcmaryswtlxadctqoj.ywqxrhxsskgbamozyokdffbakongcnvejfvmkrxkhsaabxl g,kzwcn
+    vgpplhww,js.mw .njfqm rmr pfzuuvpy.ygdcuiyvrdnj.nlyzxd enhcicuzx,vv ,zva,sp, gpi
+</span></div>
+
+<button id="resetButton">Reset</button>
+<button id="codeButton">Code</button>
+<div id="codeInputContainer">
+    <input type="text" id="codeInput" placeholder="Enter code..." />
+</div>
+<button id="collectionButton">Collection</button>
+
+<h2>
+    <span id="clickCount">0</span> Daveeni
+    <span id="frenzyTimer" style="margin-left:10px; font-size:24px; color: rgb(255, 255, 255); display:none;"></span>
+</h2>
+<button id="clickButton">+1</button>
+<button id="shopButton">Shop</button>
+
+<div id="shopItems">
+    <div class="shop-row">
+        <button id="doubleClick">Upgrade Click (Cost: 50)</button>
+        <button id="autoClicker">Auto Clicker (Cost: 100)</button>
+    </div>
+
+    <button id="otherShopsButton">Other Shops</button> <!-- new row -->
+</div>
+
+<!-- Frenzy / Generic Popup Overlay -->
+<div id="popupOverlay">
+    <div id="popupBox">
+        <div id="popupContent"></div>
+    </div>
+</div>
+
+<!-- Collection Modal Overlay -->
+<div id="collectionOverlay">
+    <div id="collectionBox">
+        <div class="collectionPopupContent"></div>
+    </div>
+</div>
+
+<script>
+// --- Elements ---
+const clickButton = document.getElementById('clickButton');
+const clickCountSpan = document.getElementById('clickCount');
+const shopButton = document.getElementById('shopButton');
+const shopItems = document.getElementById('shopItems');
+const doubleClick = document.getElementById('doubleClick');
+const autoClicker = document.getElementById('autoClicker');
+const resetButton = document.getElementById('resetButton');
+const codeButton = document.getElementById('codeButton');
+const codeInputContainer = document.getElementById('codeInputContainer');
+const codeInput = document.getElementById('codeInput');
+const popupOverlay = document.getElementById('popupOverlay');
+const popupContent = document.getElementById('popupContent');
+const collectionButton = document.getElementById('collectionButton');
+const frenzyTimerSpan = document.getElementById('frenzyTimer');
+
+let count = parseFloat(localStorage.getItem('count')) || 0;
+let clickValue = parseFloat(localStorage.getItem('clickValue')) || 1;
+let doubleClickCost = parseFloat(localStorage.getItem('doubleClickCost')) || 50;
+let autoClickerCost = parseFloat(localStorage.getItem('autoClickerCost')) || 100;
+let autoClickerCount = parseInt(localStorage.getItem('autoClickerCount')) || 0;
+let frenzyChance = parseFloat(localStorage.getItem('frenzyChance')) || 0.001; // 1% chance since its 1 divided by 100 im so smart at math guys AHHHHHH
+let frenzyMultiply = parseFloat(localStorage.getItem('frenzyMultiply')) || 10; // 10x base
+let frenzyDuration = parseFloat(localStorage.getItem('frenzyDuration')) || 30; // seconds
+let frenzyDurationCost = parseFloat(localStorage.getItem('frenzyDurationCost')) || 500;
+let frenzyMultiplyCost = parseFloat(localStorage.getItem('frenzyMultiplyCost')) || 500;
+let frenzyTimeLeft = 0;
+let frenzyInterval = null;
+let frenzyActive = false;
+let originalClickValue = clickValue;
+let confirmTimeout = null;
+let confirming = false;
+let codeOpen = false;
+let autoClickerInterval = null;
+
+let collectionItems = [
+    { url: "https://media.tenor.com/s_ldGY2Tf-0AAAAM/megamind.gif", alt: "Collected Megamind", unlock: 1000, unlocked: false },
+    { url: "https://i.guim.co.uk/img/media/3aab8a0699616ac94346c05f667b40844e46322f/0_123_5616_3432/master/5616.jpg?width=700&quality=85&auto=format&fit=max&s=a476da702aff265ce6f586be1412b1e1", alt: "Collected Harold", unlock: 5000, unlocked: false },
+    { url: "https://ih1.redbubble.net/image.2595320116.9420/flat,750x,075,f-pad,750x1000,f8f8f8.jpg", alt: "Collected Mike Wazowski", unlock: 10000, unlocked: false },
+    { url: "https://content.imageresizer.com/images/memes/ishowspeed-rage-meme-3.jpg", alt: "Collected Speed", unlock: 50000, unlocked: false },
+    { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGSu-QgD6Af0cinsMjIBhnFDx4ZiDe2wAjmQ&s", alt: "Collected KSI", unlock: 1000000, unlocked: false },
+    { url: "https://imgflip.com/s/meme/Disaster-Girl.jpg", alt: "Collected Fire Girl", unlock: 1000000000, unlocked: false },
+    { url: "https://imgflip.com/s/meme/Roll-Safe-Think-About-It.jpg", alt: "Collected Think About It", unlock: 1000000000000, unlocked: false },
+    { url: "https://i.imgflip.com/3eqjd8.jpg", alt: "Collected 3-Way Spiderman", unlock: 1000000000000000, unlocked: false },
+    { url: "https://i.imgflip.com/98qr33.jpg", alt: "Collected Player 456", unlock: 1000000000000000000, unlocked: false },
+    { url: "https://i.imgflip.com/a73aar.jpg", alt: "Collected 67 Headache", unlock: 1000000000000000000000, unlocked: false },
+    { url: "https://i.imgflip.com/aagejv.jpg", alt: "Collected Highway Doomscrolling", unlock: 1000000000000000000000000, unlocked: false },
+    { url: "https://i.imgflip.com/9t865f.jpg", alt: "Collected Church Paradox", unlock: 1000000000000000000000000000, unlocked: false }
+];
+
+// ULTIMATE SAVING FUNCTION
+function saveGame() {
+    localStorage.setItem('count', count);
+    localStorage.setItem('clickValue', clickValue);
+    localStorage.setItem('doubleClickCost', doubleClickCost);
+    localStorage.setItem('autoClickerCost', autoClickerCost);
+    localStorage.setItem('autoClickerCount', autoClickerCount);
+    localStorage.setItem('collectionState', JSON.stringify(collectionItems));
+    localStorage.setItem('frenzyDuration', frenzyDuration);
+    localStorage.setItem('frenzyDurationCost', frenzyDurationCost);
+    localStorage.setItem('frenzyMultiply', frenzyMultiply);
+    localStorage.setItem('frenzyMultiplyCost', frenzyMultiplyCost);
+}
+
+
+// formatting numbers with suffixes which took me way too long
+function formatNumber(num) {
+    if (num < 1) return num.toFixed(2);
+    const suffixes = [
+        { value: 1e42, symbol: "Tre"}, 
+        { value: 1e39, symbol: "Duo"}, // duodecillion
+        { value: 1e36, symbol: "Un" }, // undecillion
+        { value: 1e33, symbol: "Dec" }, // decillion
+        { value: 1e30, symbol: "Non" }, // nonillion
+        { value: 1e27, symbol: "Oc" },  // octillion
+        { value: 1e24, symbol: "Sp" }, // septillion
+        { value: 1e21, symbol: "Sx" }, // sextillion
+        { value: 1e18, symbol: "Qi" }, // quintillion
+        { value: 1e15, symbol: "Qa" }, // quadrillion
+        { value: 1e12, symbol: "T" },  // trillion
+        { value: 1e9,  symbol: "B" },  // billion
+        { value: 1e6,  symbol: "M" }   // million
+    ];
+
+    // Use suffixes if number is below 1000 Oc
+    for (let i = 0; i < suffixes.length; i++) {
+        if (num >= suffixes[i].value) {
+            // Special case for octillion
+            if(suffixes[i].symbol === "Oc" && num >= 1000 * suffixes[i].value) {
+                return num.toExponential(3); // switch to e+ after 999 Oc
+            }
+            return (num / suffixes[i].value).toFixed(2) + " " + suffixes[i].symbol + "  ";
+        }
+    }
+
+    return num.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    }) + "  ";
+}
+// update display from main game state functions
+function updateDisplay() {
+    clickCountSpan.textContent = formatNumber(count) + " ";
+    updateShopButtons();
+    updateClickButton();
+    checkCollectionUnlocks();
+    saveGame();
+}
+
+function updateShopButtons() {
+    doubleClick.textContent = `Upgrade Click (+${formatNumber(clickValue*1.2)} /click) - Cost: ${formatNumber(doubleClickCost)}`;
+    doubleClick.disabled = count < doubleClickCost;
+
+    autoClicker.textContent = `Auto Clicker (+${formatNumber(clickValue*0.1*(autoClickerCount+1))} /sec) - Cost: ${formatNumber(autoClickerCost)}`;
+    autoClicker.disabled = count < autoClickerCost;
+
+    if (document.getElementById('upgradeFrenzyDuration')) {
+        updateOtherShopsButtons();
+    }
+}
+
+
+function updateClickButton(){
+    clickButton.textContent = `+${formatNumber(clickValue)}  `;
+}
+
+// add click main vent
+
+clickButton.addEventListener('click', () => {
+    count += clickValue;
+    updateDisplay();
+    clickButton.style.transform = "scale(1.1)";
+    setTimeout(() => clickButton.style.transform = "scale(1)", 100);
+
+    if (!frenzyActive && Math.random() < frenzyChance) {
+        startFrenzy();
+    }
+});
+
+// shop button
+shopButton.addEventListener('click',()=>{ shopItems.style.display = shopItems.style.display==='none'?'block':'none'; });
+
+doubleClick.addEventListener('click', () => {
+    if (count >= doubleClickCost) {
+        count -= doubleClickCost;
+        clickValue *= 1.2;
+        doubleClickCost *= 1.2;
+        updateDisplay();
+    } else showPopup("Not enough Daveeni!");
+});
+
+autoClicker.addEventListener('click', () => {
+    if (count >= autoClickerCost) {
+        count -= autoClickerCost;
+        autoClickerCount++;
+        autoClickerCost *= 1.5;
+        updateDisplay();
+        startAutoClicker();
+    } else showPopup("Not enough Daveeni!");
+});
+
+function startAutoClicker() {
+    if (autoClickerInterval) return;
+    autoClickerInterval = setInterval(() => {
+        count += clickValue * 0.1 * autoClickerCount;
+        updateDisplay();
+    }, 1000);
+}
+
+// reset
+resetButton.addEventListener('click', () => {
+    if (!confirming) {
+        confirming = true;
+        resetButton.classList.add('confirm');
+        resetButton.textContent = 'Confirm?';
+        confirmTimeout = setTimeout(() => {
+            resetButton.classList.remove('confirm');
+            resetButton.textContent = 'Reset';
+            confirming = false;
+        }, 3000);
+    } else {
+        clearTimeout(confirmTimeout);
+        confirming = false;
+        resetButton.classList.remove('confirm');
+        resetButton.textContent = 'Reset';
+
+        // reset main game variables
+        count = 0; 
+        clickValue = 1; 
+        doubleClickCost = 50; 
+        autoClickerCost = 100; 
+        autoClickerCount = 0; 
+        collectionItems.forEach(i => i.unlocked = false);
+
+        // reset frenzy upgrades
+        frenzyMultiply = 10;        // 10x base
+        frenzyMultiplyCost = 500;   // starting cost
+        frenzyDuration = 30;        // reset duration
+        frenzyDurationCost = 500;   // reset duration cost
+
+        // update localStorage for frenzy upgrades
+        localStorage.setItem('frenzyMultiply', frenzyMultiply);
+        localStorage.setItem('frenzyMultiplyCost', frenzyMultiplyCost);
+        localStorage.setItem('frenzyDuration', frenzyDuration);
+        localStorage.setItem('frenzyDurationCost', frenzyDurationCost);
+
+        // reset background and text color
+        document.body.style.backgroundColor = "black";
+        document.body.style.color = "white";
+        document.body.style.backgroundImage = "";
+
+        // end frenzy if ts still active
+        if (frenzyActive) {
+            frenzyActive = false;
+            clickValue = 1; // reset click value
+            clearInterval(frenzyInterval);
+            frenzyInterval = null;
+            frenzyTimerSpan.style.display = "none"; // hide countdown
+        }
+
+        updateDisplay();
+        showPopup("Progress reset!");
+    }
+});
+// code input
+codeButton.addEventListener('click',e=>{ e.stopPropagation(); codeOpen=true; codeButton.style.display='none'; codeInputContainer.style.display='block'; setTimeout(()=>codeInput.focus(),10); });
+codeInputContainer.addEventListener('click',e=>e.stopPropagation());
+document.addEventListener('click',()=>{ if(codeOpen){ codeOpen=false; codeInputContainer.style.display='none'; codeInput.value=''; codeButton.style.display='inline-block'; }});
+
+codeInput.addEventListener('keydown', e=>{
+    if(e.key==='Enter'){
+        const code=codeInput.value.trim().toLowerCase();
+        codeInput.value='';
+        switch(code){ // PLEASE DONT LEAK CODES TO OTHER PEOPLE IT CAN BE OUR LITTLE SECRET SHUSH
+            case "yellow":
+                document.body.style.backgroundColor="#FFFF00";
+                document.body.style.color="black";
+                showPopup("Background changed to yellow!");
+                break;
+            case "steve":
+                document.body.style.backgroundImage = "url('https://upload.wikimedia.org/wikipedia/commons/4/40/Portrait_of_a_father.jpg')";
+                document.body.style.backgroundSize = "cover";
+                document.body.style.backgroundPosition = "center";
+                document.body.style.backgroundRepeat = "no-repeat";
+                document.body.style.backgroundAttachment = "fixed";
+                document.body.style.color = "white";
+                showPopup("Background changed to Steve!", {duration: 1500});
+                break;
+            case "frenzy":
+                startFrenzy();
+                showPopup("frenzy activated")
+                break;
+            case "endfrenzy":
+                endFrenzy();
+                showPopup("frenzy deactivated if frenzy")
+                break;
+            case "infinite": 
+                count = 0; clickValue = 0.01; doubleClickCost = 50000000000000000; autoClickerCost = 100000000000000000; autoClickerCount = 0; collectionItems.forEach(i => i.unlocked = false); frenzyMultiply = 0.1; frenzyMultiplyCost = 5000000000000000000; frenzyDuration = 100000000; frenzyDurationCost = 50000000000; showPopup("Added infinity to everthing :3. jk ur cooked"); break;
+            case "pokebowl":
+                showPopup("bro still thot code was still there. im crine. bro so unc", {duration: 10000}); count = 0; clickValue = 0; break;
+            case "parker":
+                document.body.style.backgroundImage = "url('data:image/jpeg;base64,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')";
+                document.body.style.backgroundSize = "cover";
+                document.body.style.backgroundPosition = "center";
+                document.body.style.backgroundRepeat = "no-repeat";
+                document.body.style.backgroundAttachment = "fixed"; document.body.style.color = "white";showPopup("Background changed to Parker!", {duration: 1500}); break; 
+            case "test":
+                count = 1e33; break;
+                showPopup("test")
+            default:
+                showPopup("no");
+        }
+        updateDisplay();
+        saveGame();
+    }
+});
+
+function startFrenzy() {
+    if(frenzyActive) return;
+
+    showPopup(`${frenzyMultiply}x Click Value Frenzy!`, { duration: 1000, blockEscape: true });
+
+    setTimeout(() => {
+        frenzyActive = true;
+        originalClickValue = clickValue;
+        clickValue *= frenzyMultiply; // use upgraded multiply
+
+        document.body.style.backgroundImage = "url('https://static.vecteezy.com/system/resources/thumbnails/022/166/851/small/usa-dollar-fall-with-alpha-channel-free-video.jpg')";
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+        document.body.style.backgroundRepeat = "no-repeat";
+        document.body.style.backgroundAttachment = "fixed";
+        document.body.style.color = "white";
+
+        frenzyTimeLeft = frenzyDuration; // use upgraded duration
+        frenzyTimerSpan.style.display = "inline";
+
+        frenzyInterval = setInterval(() => {
+            frenzyTimeLeft--;
+            frenzyTimerSpan.textContent = `${frenzyTimeLeft}s`;
+
+            if(frenzyTimeLeft <= 0){
+                endFrenzy();
+            }
+        }, 1000);
+
+        updateClickButton();
+    }, 1000);
+}
+
+function endFrenzy() {
+    frenzyActive = false;
+    clickValue = clickValue /= 10
+
+    document.body.style.backgroundImage = "";
+    document.body.style.backgroundColor = "black";
+    document.body.style.color = "white";
+
+    frenzyTimerSpan.style.display = "none";
+    clearInterval(frenzyInterval);
+    frenzyInterval = null;
+
+    updateClickButton();
+    showPopup("Frenzy ended!", { duration: 1000 });
+}
+
+// popup system
+function showPopup(message, options = {}) {
+    const duration = options.duration || 1000;
+    const blockEscape = options.blockEscape || false;
+    popupContent.innerHTML = message;
+    popupOverlay.classList.add('show');
+
+    let canClose = !blockEscape;
+
+    setTimeout(() => {
+        popupOverlay.classList.remove('show');
+    }, duration);
+
+    if (!blockEscape) {
+        popupOverlay.addEventListener('click', () => {
+            popupOverlay.classList.remove('show');
+        }, { once: true });
+    }
+}
+
+function showSessionPopup(message = "Welcome back!", countdownTime = 5) {
+    // overlay thingies ahhhhh
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = 0;
+    overlay.style.left = 0;
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    overlay.style.zIndex = 9999;
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.backdropFilter = 'blur(4px)';
+    document.body.appendChild(overlay);
+
+    // POP
+    const popup = document.createElement('div');
+    popup.style.background = '#222';
+    popup.style.color = '#fff';
+    popup.style.padding = '25px 35px';
+    popup.style.borderRadius = '15px';
+    popup.style.textAlign = 'center';
+    popup.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
+    popup.style.maxWidth = '420px';
+    popup.style.width = '90%';
+    popup.style.fontFamily = 'Poppins, sans-serif';
+    popup.style.position = 'relative';
+    popup.innerHTML = `
+        <h2 style="margin-bottom: 20px; font-size: 30px; line-height: 1.4;">
+            ${message}
+        </h2>
+        <button id="sessionCloseButton"
+            style="
+                display: block;
+                margin: 15px auto 0 auto;
+                background-color: #800;
+                padding: 6px 12px;
+                font-size: 16px;
+                border-radius: 8px;
+                color: white;
+                cursor: not-allowed;
+                border: none;
+                transition: background-color 0.2s, transform 0.2s;
+                opacity: 0.8;
+            ">
+            Close (${countdownTime})
+        </button>
+    `;
+    overlay.appendChild(popup);
+
+    // countdown
+    const closeButton = popup.querySelector('#sessionCloseButton');
+    let remaining = countdownTime;
+
+    const timer = setInterval(() => {
+        remaining--;
+        closeButton.textContent = `Close (${remaining})`;
+
+        if (remaining <= 0) {
+            clearInterval(timer);
+            closeButton.textContent = "Close";
+            closeButton.disabled = false;
+            closeButton.style.cursor = "pointer";
+            closeButton.style.opacity = "1";
+
+            // hover but you cant do it lol
+            closeButton.addEventListener('mouseenter', () => {
+                closeButton.style.backgroundColor = "#a00";
+                closeButton.style.transform = "scale(1.05)";
+            });
+            closeButton.addEventListener('mouseleave', () => {
+                closeButton.style.backgroundColor = "#800";
+                closeButton.style.transform = "scale(1)";
+            });
+
+            // close action
+            closeButton.addEventListener('click', () => {
+                popup.remove();
+                overlay.remove();
+            }, { once: true });
+        }
+    }, 1000);
+}
+
+
+
+window.addEventListener('load', () => {
+    showSessionPopup("PLEASE BE PRODUCTIVE AND ONLY PLAY DAVEENI CLICKER AT HOME", 5);
+});
+
+// collection system
+function checkCollectionUnlocks(){
+    collectionItems.forEach(item=>{
+        if(!item.unlocked && count>=item.unlock){
+            item.unlocked=true;
+            showPopup(`New item unlocked: ${item.alt} at ${formatNumber(item.unlock)}!`, {duration:2000});}
+    });
+}
+
+function showCollectionPopup(){
+    popupOverlay.classList.add('show');
+    popupContent.innerHTML = `
+        <h3 style="margin-bottom:10px;">Your Collection</h3>
+        <div class="collectionPopupContent"></div>
+        <button id="closeCollection">Close</button>
+    `;
+
+    const container = popupContent.querySelector('.collectionPopupContent');
+    const unlockedItems = collectionItems.filter(i => i.unlocked);
+
+    if (unlockedItems.length === 0){
+        container.innerHTML = '<p>No images collected yet.</p>';
+    } else {
+        container.innerHTML = unlockedItems.map(i => `
+            <div class="collectionItem">
+                <img src="${i.url}" alt="${i.alt}">
+                <span>Collected at ${formatNumber(i.unlock)}</span>
+            </div>
+        `).join('');
+    }
+
+    document.getElementById('closeCollection').addEventListener('click', () => {
+        popupOverlay.classList.remove('show');
+    });
+}
+
+collectionButton.addEventListener('click', showCollectionPopup);
+
+otherShopsButton.addEventListener('click', showOtherShopsPopup);
+
+function showOtherShopsPopup() {
+    popupOverlay.classList.add('show');
+    popupContent.innerHTML = `
+        <h3>Other Shops</h3>
+        <div id="otherShopItems">
+            <div class="shop-row">
+                <div>
+                    <button id="upgradeFrenzyDuration">Upgrade Frenzy Duration</button>
+                    <div class="button-info" id="frenzyDurationInfo">
+                        Duration: ${frenzyDuration}s | Cost: ${formatNumber(frenzyDurationCost)}
+                    </div>
+                </div>
+                <div>
+                    <button id="upgradeFrenzyMultiply">Upgrade Frenzy Multiply</button>
+                    <div class="button-info" id="frenzyMultiplyInfo">
+                        Multiply: ${formatNumber(frenzyMultiply)}x | Cost: ${formatNumber(frenzyMultiplyCost)}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button id="closeOtherShops">Close</button>
+    `;
+
+    const durationButton = document.getElementById('upgradeFrenzyDuration');
+    const multiplyButton = document.getElementById('upgradeFrenzyMultiply');
+
+    updateOtherShopsButtons();
+
+    durationButton.addEventListener('click', () => {
+        if (count >= frenzyDurationCost && frenzyDuration < 180) {
+            count -= frenzyDurationCost;
+            frenzyDuration += 15;
+            if (frenzyDuration > 180) frenzyDuration = 180;
+            frenzyDurationCost *= 1.2;
+            updateDisplay();
+            saveGame();
+            updateOtherShopsButtons();
+        }
+    });
+
+    multiplyButton.addEventListener('click', () => {
+    const maxMultiply = 50; // ts
+
+    if (count >= frenzyMultiplyCost && frenzyMultiply < maxMultiply) {
+        count -= frenzyMultiplyCost;
+        frenzyMultiply += 5;
+        if (frenzyMultiply > maxMultiply) frenzyMultiply = maxMultiply;
+
+        frenzyMultiplyCost *= 1.2;
+
+        updateDisplay();
+        saveGame();
+        updateOtherShopsButtons();
+    }
+});
+
+    document.getElementById('closeOtherShops').addEventListener('click', () => {
+        popupOverlay.classList.remove('show');
+    });
+}
+
+function updateOtherShopsButtons() {
+    const durationButton = document.getElementById('upgradeFrenzyDuration');
+    const multiplyButton = document.getElementById('upgradeFrenzyMultiply');
+
+    if (!durationButton || !multiplyButton) return;
+
+    // max it up GRRR
+    const maxDuration = 180;
+    const maxMultiply = 50;
+
+    durationButton.disabled = count < frenzyDurationCost || frenzyDuration >= maxDuration;
+    durationButton.style.cursor = durationButton.disabled ? "not-allowed" : "pointer";
+    durationButton.style.opacity = durationButton.disabled ? "0.4" : "1";
+
+    if (frenzyDuration >= maxDuration) {
+        document.getElementById('frenzyDurationInfo').textContent =
+            `Duration: ${frenzyDuration}s | Max Upgrade`;
+    } else {
+        document.getElementById('frenzyDurationInfo').textContent =
+            `Duration: ${frenzyDuration}s | Cost: ${formatNumber(frenzyDurationCost)}`;
+    }
+
+    multiplyButton.disabled = count < frenzyMultiplyCost || frenzyMultiply >= maxMultiply;
+    multiplyButton.style.cursor = multiplyButton.disabled ? "not-allowed" : "pointer";
+    multiplyButton.style.opacity = multiplyButton.disabled ? "0.4" : "1";
+
+    if (frenzyMultiply >= maxMultiply) {
+        document.getElementById('frenzyMultiplyInfo').textContent =
+            `Multiply: ${formatNumber(frenzyMultiply)}x | Max Upgrade`;
+    } else {
+        document.getElementById('frenzyMultiplyInfo').textContent =
+            `Multiply: ${formatNumber(frenzyMultiply)}x | Cost: ${formatNumber(frenzyMultiplyCost)}`;
+    }
+}
+
+function updateOtherShopsDisplay() {
+    const chanceInfo = document.getElementById('frenzyChanceInfo');
+    const multiplyInfo = document.getElementById('frenzyMultiplyInfo');
+    if (chanceInfo && multiplyInfo) {
+        chanceInfo.textContent = `Chance: ${(frenzyChance*100).toFixed(1)}% | Cost: ${frenzyChanceCost.toFixed(0)}`;
+        multiplyInfo.textContent = `Multiply: ${frenzyMultiply}x | Cost: ${frenzyMultiplyCost.toFixed(0)}`;
+    }
+}
+
+// pookie
+if(autoClickerCount>0) startAutoClicker();
+updateDisplay();
+window.addEventListener('beforeunload', saveGame);
+
+</script>
+</body>
+</html>
+
+<!-- good luck -->
