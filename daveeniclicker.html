@@ -1,4 +1,4 @@
-<!-- VERSION 4.5 (revamp + favicon) -->
+<!-- VERSION 4.6 (favicon + new suffixes on formats) -->
 <!-- UPDATED NOV 7-->
 <!-- BY DAVIN NGUYEN -->
 <!DOCTYPE html>
@@ -605,15 +605,20 @@ function saveGame() {
 function formatNumber(num) {
     if (num < 1) return num.toFixed(2);
     const suffixes = [
-        { value: 1e42, symbol: "Tre"}, 
+        { value: 1e303, symbol: "Centi"}, // centillion
+        { value: 1e300, symbol: "Nona"},  // nonagintillion
+        { value: 1e297, symbol: "Octo"},  // octogintillion
+        { value: 1e294, symbol: "Sept"},  // septuagintillion
+        { value: 1e45, symbol: "Quat"}, // quattuordecillion
+        { value: 1e42, symbol: "Tre"}, // tredecillion
         { value: 1e39, symbol: "Duo"}, // duodecillion
-        { value: 1e36, symbol: "Un" }, // undecillion
+        { value: 1e36, symbol: "Und" }, // undecillion
         { value: 1e33, symbol: "Dec" }, // decillion
         { value: 1e30, symbol: "Non" }, // nonillion
-        { value: 1e27, symbol: "Oc" },  // octillion
-        { value: 1e24, symbol: "Sp" }, // septillion
-        { value: 1e21, symbol: "Sx" }, // sextillion
-        { value: 1e18, symbol: "Qi" }, // quintillion
+        { value: 1e27, symbol: "Oct" },  // octillion
+        { value: 1e24, symbol: "Sep" }, // septillion
+        { value: 1e21, symbol: "Sex" }, // sextillion
+        { value: 1e18, symbol: "Qu" }, // quintillion
         { value: 1e15, symbol: "Qa" }, // quadrillion
         { value: 1e12, symbol: "T" },  // trillion
         { value: 1e9,  symbol: "B" },  // billion
@@ -784,11 +789,11 @@ codeInput.addEventListener('keydown', e=>{
                 document.body.style.color = "white";
                 showPopup("Background changed to Steve!", {duration: 1500});
                 break;
-            case "frenzy":
+            case "fen":
                 startFrenzy();
                 showPopup("frenzy activated")
                 break;
-            case "endfrenzy":
+            case "efen":
                 endFrenzy();
                 showPopup("frenzy deactivated if frenzy")
                 break;
@@ -802,8 +807,8 @@ codeInput.addEventListener('keydown', e=>{
                 document.body.style.backgroundPosition = "center";
                 document.body.style.backgroundRepeat = "no-repeat";
                 document.body.style.backgroundAttachment = "fixed"; document.body.style.color = "white";showPopup("Background changed to Parker!", {duration: 1500}); break; 
-            case "test":
-                count = 1e33; break;
+            case "secret":
+                count = 1e67; break;
                 showPopup("test")
             default:
                 showPopup("no");
